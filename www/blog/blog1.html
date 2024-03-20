@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un mystère à Digitown</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .header {
+            background-color: #336791;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .nav {
+            background-color: #fff;
+            padding: 10px 0;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav a {
+            color: #336791;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .article {
+            background-color: #ffffff;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        .article pre,
+        .article img {
+            max-width: 100%;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+		.hashtags {
+            flex: 0 0 200px; /* Taille fixe de la colonne latérale */
+            background-color: #f0f0f0;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px;
+        }
+        .hashtag {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #336791;
+            color: #ffffff;
+            text-align: center;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Un mystère à Digitown</h1>
+    </div>
+    <div class="nav">
+        <a href="#">Accueil</a>
+        <a href="#">Articles</a>
+        <a href="#">À propos</a>
+        <a href="#">Contact</a>
+    </div>
+	<div class="hashtags">
+        <h2>Hashtags</h2>
+        <div class="hashtag">#Technologie</div>
+		<div class="hashtag">#Programmation</div>
+    <div class="hashtag">#WebDesign</div>
+            <!-- Ajoutez d'autres hashtags ici -->
+        </div>
+    <div class="article">
+        <p>Dans la quiétude apparente de Digitown, une ombre planait sur la Bibliothèque Nationale, prête à dévoiler ses trésors culturels. La numérisation de 325 000 ouvrages rares était sur le point de rendre hommage aux explorateurs de cette cité paisible. Cependant, alors que l'excitation montait pour la réouverture de l'exposition, un caprice du destin s'apprêtait à jeter une ombre sinistre sur les étagères prestigieuses de Digitown. Le livre "De Revolutionibus Magnis Data" de Gustav Kustov, un des plus rares du monde, avait mystérieusement disparu.</p>
+        <p>Face à cette situation urgente, la mairesse, Mme Gaia Budskott, fit appel à l'agence de détectives Kusto, réputée pour résoudre les mystères les plus ardus. Un jeune détective, prêt à faire ses preuves, se voyait confier sa première mission : retrouver l’ouvrage disparu.</p>
+        <p>Les données numériques de la Bibliothèque Nationale de Digitown constituaient un labyrinthe complexe pour notre jeune détective. Alors que chaque livre était étiqueté d'un identifiant RFID unique, le livre de Kustov avait disparu en laissant derrière lui son identifiant sur le sol froid de la bibliothèque.</p>
+        <p>S'immergeant dans les méandres du système d'information, le détective commença son enquête.</p>
+        <hr>
+        <code>
+.execute database script &lt;|
+// Create table for the books
+.create-merge table Books(rf_id:string, book_title:string, publish_date:long, author:string, 
+	language:string, number_of_pages:long, weight_gram:long)
+//clear any previously ingested data if such exists
+.clear table Books data
+// Import data for books
+// (Used data is utilizing catalogue from https://github.com/internetarchive/openlibrary )
+.ingest into table Books ('https://kustodetectiveagency.blob.core.windows.net/digitown-books/books.csv.gz')
+	with (ignoreFirstRecord=true)
+// Create table for the shelves
+.create-merge table Shelves (shelf:long, rf_ids:dynamic, total_weight:long) 
+.clear table Shelves data
+// Import data for shelves
+.ingest into table Shelves ('https://kustodetectiveagency.blob.core.windows.net/digitown-books/shelves.csv.gz')
+	with (ignoreFirstRecord=true)
+        </code>
+        <hr>
+        <p>Les étagères numériques envoyaient des données constantes, sur les livres présents. Un défi monumental s'offrait à lui : retrouver une aiguille dans une bibliothèque de données numériques.</p>
+        <p>Il commença une analyse minutieuse d’une seule et unique étagère.</p>
+        <code>
+Shelves
+| where shelf == "1395"
+        </code>
+        <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/le4r39k5mag12jb5ver5.png" alt="Résultat des données de Kusto">
+        <p>Mais brut, les données ne pouvaient pas être exploitées, il se mit d'abord à isoler chaque identifiant RFID.</p>
+        <code>
+Shelves
+| where shelf == "1395"
+| mv-expand rf_ids to typeof(string)
+        </code>
+        <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/37abyfk31gb43rst5x4q.png" alt="Résultat des données de Kusto">
+        <p>Il était maintenant possible de relier cela aux informations spécifiques de chaque livre. Le poids des livres, comparés aux poids enregistrés par les étagères, semblaient cohérents malgré de légères variations. Un détail minime dans l'équation, ou bien une pièce manquante au puzzle ?</p>
+        <code>
+Shelves
+| mv-expand rf_ids to typeof(string)
+| join kind=inner (Books) on $left.rf_ids == $right.rf_id
+| summarize TotalWeightBook = sum(weight_gram) by shelf
+| join kind=inner (Shelves) on shelf
+| project shelf, TotalWeightBook, total_weight
+        </code>
+        <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/jp0gqj2mb84b8e1ymbyf.png" alt="Résultat des données de Kusto">
+        <p>L'idée jaillit soudainement dans l'esprit du jeune détective. Et s'il calculait avec précision la différence en pourcentage entre le poids total des livres par étagère et le poids enregistré par l'étagère elle-même ?</p>
+        <code>
+Shelves
+| mv-expand rf_ids to typeof(string)
+| join kind=inner (Books) on $left.rf_ids == $right.rf_id
+| summarize TotalWeightBook = sum(weight_gram) by shelf
+| join kind=inner (Shelves) on shelf
+| project shelf, TotalWeightBook, total_weight
+| extend WeightVariation = round((todouble(total_weight) - TotalWeightBook) / TotalWeightBook * 100,3)
+| top 10 by WeightVariation
+        </code>
+        <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/u7oe1sy97hh2p576z477.png" alt="Résultat des données de Kusto">
+        <p>Une étagère se détacha nettement du lot : l'étagère numéro 4 242. Un frisson d'excitation illumina le visage du détective, laissant présager une découverte imminente, persuadé d'avoir déniché l'endroit où se cachait le précieux "De Revolutionibus Magnis Data".</p>
+        <p>La tension monta alors qu'il se dirigea vers l'étagère cible. Et là, entre des volumes ordinaires, reposait le livre tant recherché. Le mystère était résolu, le détective avait triomphé.</p>
+        <p>La directrice de la bibliothèque exprima un soulagement sincère, remerciant le jeune détective pour son efficacité.</p>
+        <p>La ville de Digitown célébra cette journée mémorable, et le détective novice, qui avait commencé cette enquête avec une pointe d'appréhension, s'imposa comme un véritable détective, prouvant que persévérance, intelligence et analyse de données étaient les clés de la résolution des énigmes.</p>
+        <p>Ainsi se conclut notre histoire, révélant que même les mystères les plus insaisissables peuvent être résolus avec ténacité. L'avenir réserve-t-il d'autres défis à notre détective ? Seul le temps nous le dira.</p>
+        <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/omenskfgcktikqp2ubkp.png" alt="Récompense pour avoir résolu le cas">
+    </div>
+    <div class="footer">
+        <p>© 2024 Blog sur PostgreSQL - Tous droits réservés</p>
+    </div>
+</body>
+</html>

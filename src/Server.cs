@@ -15,7 +15,7 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        ServerConfiguration serverConfiguration = new ServerConfiguration(80, 20, 5);
+        ServerConfiguration serverConfiguration = new ServerConfiguration(8080, 20, 5);
         ConnectionManager connectionManager = new ConnectionManager();
         Logger.Initialize(@"/etc/MyApache/log/", "myappache.log", 2, 1024);
         TerminalMiddleware terminalMiddleware = new TerminalMiddleware();
@@ -23,7 +23,7 @@ class Program
         LoggerMiddleware loggerMiddleware = new LoggerMiddleware(routingMiddleware.InvokeAsync);
         Func<HTTPContext, Task> pipeline = loggerMiddleware.InvokeAsync;
 
-        connectionManager.StartAsync(System.Net.IPAddress.Any, 4221, pipeline);
+        connectionManager.StartAsync(System.Net.IPAddress.Any, serverConfiguration.Port, pipeline);
 
 
         while (true)

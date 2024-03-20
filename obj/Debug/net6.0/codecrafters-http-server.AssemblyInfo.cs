@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("codecrafters-http-server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f883607720178dc1df4c5af8f94f8b32eecf8c26")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0333ccbb393a7764cb03aaaeb0643f95c90f36e2")]
 [assembly: System.Reflection.AssemblyProductAttribute("codecrafters-http-server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("codecrafters-http-server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
