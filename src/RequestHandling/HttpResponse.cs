@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 
-namespace codecrafters_http_server.src.RequestHandling
+namespace pandapache.src.RequestHandling
 {
     public class HttpResponse
     {
         public int StatusCode { get; set; }
         public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
-        public string Body { get; set; }
+        public byte[] Body { get; set; }
 
         public HttpResponse(int statusCode)
         {

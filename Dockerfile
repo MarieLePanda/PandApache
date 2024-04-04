@@ -12,7 +12,7 @@ RUN dotnet publish -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /App
 COPY --from=build-env /App/out .
-RUN mkdir -p .etc.MyApache/www
-COPY www /etc/MyApache/www
+RUN mkdir -p /etc/PandApache/www
+COPY www /etc/PandaApache/www
 
-CMD ["dotnet", "codecrafters-http-server.dll"]
+CMD ["dotnet", "pandapache.dll"]

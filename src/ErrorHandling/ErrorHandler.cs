@@ -1,9 +1,10 @@
-﻿using codecrafters_http_server.src.RequestHandling;
+﻿using pandapache.src.RequestHandling;
 using System;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafters_http_server.src.ErrorHandling
+namespace pandapache.src.ErrorHandling
 {
     public class ErrorHandler
     {
@@ -20,7 +21,7 @@ namespace codecrafters_http_server.src.ErrorHandling
         {
             var response = new HttpResponse((int)statusCode);
             response.AddHeader("Content-Type", "text/plain");
-            response.Body = errorMessage;
+            response.Body = Encoding.UTF8.GetBytes(errorMessage);
 
             return response;
         }

@@ -1,132 +1,146 @@
-﻿using codecrafters_http_server.src.Configuration;
-using codecrafters_http_server.src.ErrorHandling;
-using codecrafters_http_server.src.LoggingAndMonitoring;
-using codecrafters_http_server.src.RequestHandling;
+﻿using pandapache.src.Configuration;
+using pandapache.src.ErrorHandling;
+using pandapache.src.LoggingAndMonitoring;
+using pandapache.src.RequestHandling;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
-namespace codecrafters_http_server.src.ConnectionManagement
+namespace pandapache.src.ConnectionManagement
 {
     public class ConnectionManager
     {
-        private TcpListener _listener;
+        public TcpListener Listener { get; set; }
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private readonly ConcurrentDictionary<Guid, Socket> _clients = new ConcurrentDictionary<Guid, Socket>();
-        private readonly ConcurrentDictionary<Guid, Socket> _clientsRejected = new ConcurrentDictionary<Guid, Socket>();
-        private Func<HTTPContext, Task> _pipeline;
-        public async Task StartAsync(IPAddress ipAddress, int port, Func<HTTPContext, Task> pipeline)
+        private readonly ConcurrentDictionary<Guid, ISocketWrapper> _clients = new ConcurrentDictionary<Guid, ISocketWrapper>();
+        private readonly ConcurrentDictionary<Guid, ISocketWrapper> _clientsRejected = new ConcurrentDictionary<Guid, ISocketWrapper>();
+        private Func<HttpContext, Task> _pipeline;
+        public async Task StartAsync(Func<HttpContext, Task> pipeline)
         {
-            _listener = new TcpListener(ipAddress, port);
-            _listener.Start();
-            _pipeline = pipeline;
-            Console.WriteLine($"Server listening on {ipAddress}:{port}");
-            Logger.LogInfo($"Server listening on {ipAddress}:{port}");
+            try
+            {
+                Listener = new TcpListener(ServerConfiguration.Instance.ServerIP, ServerConfiguration.Instance.ServerPort);
+                Listener.Start();
+                _pipeline = pipeline;
+                Logger.LogInfo($"Server listening on {ServerConfiguration.Instance.ServerIP}:{ServerConfiguration.Instance.ServerPort}");
+            }
+            catch (SocketException ex)
+            {
+                Logger.LogError($"Error, port not available: {ex.Message}");
 
-            //await AcceptConnectionsAsync(n);
-            //}
-            //catch (Exception ex)
-            //{
-            //Console.WriteLine($"Error starting server: {ex.Message}");
-            //}
+            }
+            catch ( Exception ex )
+            {
+                Logger.LogError($"Error starting the server: {ex.Message}");
+
+            }
         }
 
         public void Stop()
         {
-            _cancellationTokenSource.Cancel();
-            _listener.Stop();
-            Console.WriteLine("Server stopped.");
+            try
+            {
+                if (_cancellationTokenSource != null)
+                {
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
+                }
+
+                if (Listener != null)
+                {
+                    Listener.Stop();
+                }
+
+                Logger.LogInfo("Server stopped.");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error stopping the server: {ex}");
+            }
         }
 
-        public async Task AcceptConnectionsAsync(ServerConfiguration serverConfiguration)
+        public async Task AcceptConnectionsAsync(ISocketWrapper client)
         {
             try
             {
-                if(!_listener.Pending())
-                    return ;
-
-                if (_clients.Count < serverConfiguration.MaxAllowedConnections)
+                if (_clients.Count < ServerConfiguration.Instance.MaxAllowedConnections)
                 {
 
-                    Socket client = await _listener.AcceptSocketAsync();
                     Guid clientId = Guid.NewGuid();
                     _clients.TryAdd(clientId, client);
 
-                    Console.WriteLine($"Client connected: {client}");
-                    IPAddress remoteIPAddress = ((IPEndPoint)client.RemoteEndPoint).Address;
-                    Logger.LogInfo($"Client connected: {client.ProtocolType} {remoteIPAddress}");
+                    //IPAddress remoteIPAddress = ((IPEndPoint)client.RemoteEndPoint).Address;
+                    Logger.LogInfo($"Client connected");
 
                     // Handle client in a separate thread
                     Task.Run(() => HandleClientAsync(client, clientId));
 
                 }
-                else if(_clientsRejected.Count < serverConfiguration.MaxRejectedConnections)
+                else if(_clientsRejected.Count < ServerConfiguration.Instance.MaxRejectedConnections)
                 {
-                    Socket client = await _listener.AcceptSocketAsync();
                     Guid clientId = Guid.NewGuid();
                     _clientsRejected.TryAdd(clientId, client);
 
-                    Console.WriteLine("Too many connections - rejecting with HTTP 500");
-                    Logger.LogInfo("Too many connections - rejecting with HTTP 500");
+                    Logger.LogWarning("Too many connections - rejecting with HTTP 500");
 
                     Task.Run(() => HandleClientRejectAsync(client, clientId));
 
                 }
                 else
                 {
-                    Console.WriteLine("To many connection");
-                    Logger.LogInfo("To many connection");
+                    Logger.LogError("Too many connection");
+                    client.Dispose();
 
-                    var pendingClient = _listener.AcceptSocket();
-                    pendingClient.Close();
-
-                    return;                }
+                    return;                
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error accepting client connection: {ex.Message}");
+                Logger.LogError($"Error accepting client connection: {ex.Message}");
+
             }
         }
 
-        private async Task HandleClientAsync(Socket client, Guid clientId)
+        private async Task HandleClientAsync(ISocketWrapper client, Guid clientId)
         {
             try
             {
                 // Handle client communication here
 
                 Request request = await ConnectionUtils.ParseRequestAsync(client);
-                HTTPContext context = new HTTPContext(request, null);
+                HttpContext context = new HttpContext(request, null);
                
                 await _pipeline(context);
                 
                 await ConnectionUtils.SendResponseAsync(client, context.Response);
-                client.Close();
                 _clients.TryRemove(clientId, out client);
-                IPAddress remoteIPAddress = ((IPEndPoint)client.RemoteEndPoint).Address;
-                Logger.LogInfo($"Client closed: {client.ProtocolType} {remoteIPAddress}");
+                client.Dispose();
 
-                Console.WriteLine("Closed");
+                Logger.LogInfo($"Client closed");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling client: {ex.Message}");
+                Logger.LogError($"Error handling client: {ex.Message}");
+
             }
         }
 
-        private async Task HandleClientRejectAsync(Socket client, Guid clientId)
+        private async Task HandleClientRejectAsync(ISocketWrapper client, Guid clientId)
         {
             try
             {
                 // Handle client communication here
                 HttpResponse errorResponse = await ErrorHandler.HandleErrorAsync(new TooManyConnectionsException());
                 await ConnectionUtils.SendResponseAsync(client, errorResponse);
-                client.Close();
+ 
                 _clientsRejected.TryRemove(clientId, out client);
-                Console.WriteLine("Closed");
+                client.Dispose();
+
+                Logger.LogInfo("Closed");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling client: {ex.Message}");
+                Logger.LogError($"Error handling client: {ex.Message}");
             }
         }
     }

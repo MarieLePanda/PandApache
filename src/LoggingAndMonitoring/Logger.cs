@@ -1,24 +1,29 @@
-﻿using System;
+﻿using pandapache.src.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafters_http_server.src.LoggingAndMonitoring
+namespace pandapache.src.LoggingAndMonitoring
 {
     public static class Logger
     {
+
         private static string logDirectory;
         private static string logFileName;
         private static int maxLogFiles;
         private static int maxSizeFile;
+        private static string logLevel;
 
-        public static void Initialize(string logDirectory, string logFileName, int maxLogFiles, int maxSizeFile)
+
+        public static void Initialize()
         {
-            Logger.logDirectory = logDirectory;
-            Logger.logFileName = logFileName;
-            Logger.maxLogFiles = maxLogFiles;
-            Logger.maxSizeFile = maxSizeFile;
+            Logger.logDirectory = ServerConfiguration.Instance.LogFolder;
+            Logger.logFileName = ServerConfiguration.Instance.LogFile;
+            Logger.maxLogFiles = ServerConfiguration.Instance.MaxLogFile;
+            Logger.maxSizeFile = ServerConfiguration.Instance.SizeLogFile;
+            Logger.logLevel = ServerConfiguration.Instance.LogLevel;
         }
 
         public static void LogDebug(string message)
@@ -58,8 +63,10 @@ namespace codecrafters_http_server.src.LoggingAndMonitoring
                 if (File.Exists(logFilePath))
                 {
                     FileInfo fileInfo = new FileInfo(logFilePath);
-                    if (fileInfo.Length > 1024 * 1024) // 1 MB
+                    if (fileInfo.Length > maxSizeFile)
                     {
+                        Console.WriteLine("Log rotation");
+                        Console.WriteLine($"{fileInfo.Length} > {maxSizeFile}");
                         RotateLog();
                     }
                 }
@@ -68,6 +75,7 @@ namespace codecrafters_http_server.src.LoggingAndMonitoring
                 using (StreamWriter sw = File.AppendText(logFilePath))
                 {
                     sw.WriteLine($"{DateTime.Now} - {message}");
+                    Console.WriteLine($"{DateTime.Now} - {message}");
                 }
             }
             catch (Exception ex)
@@ -85,7 +93,7 @@ namespace codecrafters_http_server.src.LoggingAndMonitoring
                 string logFilePath = Path.Combine(logDirectory, logFileName);
 
                 // Renomme le fichier de log en ajoutant la date et l'heure actuelles au nom
-                string newLogFilePath = Path.Combine(logDirectory, $"{Path.GetFileNameWithoutExtension(logFileName)}_{DateTime.Now:yyyyMMddHHmmss}{Path.GetExtension(logFileName)}");
+                string newLogFilePath = Path.Combine(logDirectory, $"{Path.GetFileNameWithoutExtension(logFileName)}_{DateTime.Now:yyyy-MM-dd-HH-mm}{Path.GetExtension(logFileName)}");
                 File.Move(logFilePath, newLogFilePath);
 
                 // Supprime les anciens fichiers de log s'il y en a plus que le nombre maximum autorisé
@@ -115,7 +123,8 @@ namespace codecrafters_http_server.src.LoggingAndMonitoring
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error deleting old log files: {ex.Message}");
+                LogError($"Error deleting old log files: {ex.Message}");
+                LogError($"Error deleting old log files: {ex.Message}");
             }
         }
     }

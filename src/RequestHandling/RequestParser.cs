@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace codecrafters_http_server.src.RequestHandling
+namespace pandapache.src.RequestHandling
 {
 
     public class RequestParser

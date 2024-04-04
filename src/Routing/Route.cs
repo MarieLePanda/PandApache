@@ -1,4 +1,4 @@
-﻿namespace codecrafters_http_server.src.Routing
+﻿namespace pandapache.src.Routing
 {
     public class Route
     {

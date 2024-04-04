@@ -5,8 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafters_http_server.src
+namespace pandapache.src
 {
+    [Obsolete]
     public class Response
     {
         public string StartLine { get; set; }

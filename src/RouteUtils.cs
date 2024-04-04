@@ -1,13 +1,14 @@
-﻿using codecrafters_http_server.src;
-using codecrafters_http_server.src.RequestHandling;
+﻿using pandapache.src;
+using pandapache.src.RequestHandling;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafters_http_server.src
+namespace pandapache.src
 {
+    [Obsolete]
     public static class Routeutils
     {
         public static Response PathMapping(Request request) 
@@ -52,7 +53,7 @@ namespace codecrafters_http_server.src
 
         }
 
-        public static async Task<HttpResponse> PathMappingAsync(HTTPContext context)
+        public static async Task<HttpResponse> PathMappingAsync(HttpContext context)
         {
             Request request = context.Request;
             try
@@ -64,7 +65,7 @@ namespace codecrafters_http_server.src
                     string fileContent = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
                     HttpResponse response = new HttpResponse(200)
                     {
-                        Body = fileContent
+                        Body = Encoding.UTF8.GetBytes(fileContent)
                     };
                     SetContentTypeAndLength(response, "text/html; charset=utf-8");
                     return response;
@@ -104,7 +105,7 @@ namespace codecrafters_http_server.src
             string body = request.Path.Replace("/echo/", "");
             HttpResponse response = new HttpResponse(200)
             {
-                Body = body
+                Body = Encoding.UTF8.GetBytes(body)
             };
             SetContentTypeAndLength(response, "text/plain; charset=utf-8");
             return response;
@@ -115,7 +116,7 @@ namespace codecrafters_http_server.src
             string userAgent = request.Headers["User-Agent"];
             HttpResponse response = new HttpResponse(200)
             {
-                Body = userAgent
+                Body = Encoding.UTF8.GetBytes(userAgent)
             };
             SetContentTypeAndLength(response, "text/plain; charset=utf-8");
             return response;

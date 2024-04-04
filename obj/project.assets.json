@@ -4029,9 +4029,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\lgirardin\\source\\repos\\WreakWeb\\codecrafters-http-server.csproj",
-      "projectName": "codecrafters-http-server",
-      "projectPath": "C:\\Users\\lgirardin\\source\\repos\\WreakWeb\\codecrafters-http-server.csproj",
+      "projectUniqueName": "C:\\Users\\lgirardin\\source\\repos\\WreakWeb\\PandApache.csproj",
+      "projectName": "PandApache",
+      "projectPath": "C:\\Users\\lgirardin\\source\\repos\\WreakWeb\\PandApache.csproj",
       "packagesPath": "C:\\Users\\lgirardin\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\lgirardin\\source\\repos\\WreakWeb\\obj\\",
       "projectStyle": "PackageReference",

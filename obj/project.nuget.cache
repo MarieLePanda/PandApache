@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "vpDIEFfJ40O7+42ME2fSEKL54/MVNfo7ZMv5T23u4II082t0HayHl/YxR5W4ARh/ERgL6PlsEzZ6YdLhaKI8+Q==",
+  "dgSpecHash": "4liqqaP/Y0lHRmLy9MRdYD7qRZC+M1CC0rUqfI7XoFo5KlLi3KoO2lq2plgAfzox2bxijWOKg4Z/Efa9uHFOVg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\lgirardin\\source\\repos\\WreakWeb\\codecrafters-http-server.csproj",
+  "projectFilePath": "C:\\Users\\lgirardin\\source\\repos\\WreakWeb\\PandApache.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\lgirardin\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.2.0\\microsoft.aspnetcore.authentication.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\lgirardin\\.nuget\\packages\\microsoft.aspnetcore.authentication.core\\2.2.0\\microsoft.aspnetcore.authentication.core.2.2.0.nupkg.sha512",

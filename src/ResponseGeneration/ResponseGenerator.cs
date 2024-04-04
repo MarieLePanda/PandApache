@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using codecrafters_http_server.src.RequestHandling;
+using pandapache.src.RequestHandling;
 
-namespace codecrafters_http_server.src.ResponseGenerator
+namespace pandapache.src.ResponseGenerator
 {
     public static class ResponseGenerator
     {
@@ -22,9 +22,9 @@ namespace codecrafters_http_server.src.ResponseGenerator
             }
 
             // Body
-            if (!string.IsNullOrEmpty(httpResponse.Body))
+            if (!string.IsNullOrEmpty(Encoding.UTF8.GetString(httpResponse.Body)))
             {
-                responseBuilder.AppendLine($"Content-Length: {Encoding.UTF8.GetByteCount(httpResponse.Body)}");
+                responseBuilder.AppendLine($"Content-Length: {httpResponse.Body}");
                 responseBuilder.AppendLine(); // Empty line before body
                 responseBuilder.Append(httpResponse.Body);
             }

@@ -1,38 +1,43 @@
-[![progress-banner](https://backend.codecrafters.io/progress/http-server/671adbb2-0d9a-4035-b5e9-869b1b1fa664)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# PandApache: A Web Server for Static Sites
 
-This is a starting point for C# solutions to the
-["Build Your Own HTTP server" Challenge](https://app.codecrafters.io/courses/http-server/overview).
+PandApache is a lightweight web server designed specifically for hosting static websites, including HTML, CSS, and JavaScript files. It is an ideal tool for quickly and efficiently deploying presentation sites, portfolios, or landing pages, without the complexity of a dynamic backend.
 
-[HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) is the
-protocol that powers the web. In this challenge, you'll build a HTTP/1.1 server
-that is capable of serving multiple clients.
+## Features
 
-Along the way you'll learn about TCP servers,
-[HTTP request syntax](https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html),
-and more.
+- **Lightweight and Fast**: Engineered for maximum efficiency, perfect for hosting static sites.
+- **Easy to Start**: Minimalist configuration for a quick setup.
+- **Supports HTML, CSS, and JS Files**: Serves a wide range of static content.
+- **Handles GET Requests Only**: Currently, the server processes only GET requests, ideal for serving static files without complex server-to-server interactions.
+- **HTTP Configuration**: The server is configured to work with HTTP protocols, making it easy to integrate into standard web environments.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+## Prerequisites
 
-# Passing the first stage
+- **Docker**: PandApache is containerized, which means you will need Docker installed on your system to build and run it. Dependency management and runtime environment are handled by the Docker images used in the `Dockerfile`.
 
-The entry point for your HTTP server implementation is in `src/Server.cs`. Study
-and uncomment the relevant code, and push your changes to pass the first stage:
+## Installation and Startup with Docker
 
-```sh
-git add .
-git commit -m "pass 1st stage" # any msg
-git push origin master
-```
+To build and start the PandApache server using Docker, follow these steps:
 
-Time to move on to the next stage!
+1. Clone the PandApache GitHub repository:
+   ```bash
+   git clone [url_du_dépôt]
+	```
+2. Navigate to the cloned project folder:
+    ```bash
+   cd pandapache
+ 	```
+3. Build the Docker image:
+    ```bash
+    docker build -t pandapache .
+    ```
+4. Run the container:
+    ```bash
+    docker run -d -p 5000:80 pandapache
+ 	```
 
-# Stage 2 & beyond
+  This command will start the server and expose the service on port 5000 of your local machine. You can access your static site by navigating to http://localhost:5000 in your browser.
 
-Note: This section is for stages 2 and beyond.
+## Deployment
 
-1. Ensure you have `dotnet (6.0)` installed locally
-1. Run `./your_server.sh` to run your program, which is implemented in
-   `src/Server.cs`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+To deploy your static site with PandApache, simply place your HTML, CSS, and JavaScript files in a www folder at the root of your project before building the Docker image. 
+The Dockerfile is configured to copy this folder into the container, making your static files accessible via the web server.

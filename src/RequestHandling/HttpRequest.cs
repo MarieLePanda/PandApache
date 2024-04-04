@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace codecrafters_http_server.src.RequestHandling
+namespace pandapache.src.RequestHandling
 {
     public class HttpRequest
     {

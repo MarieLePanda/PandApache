@@ -1,46 +1,67 @@
-﻿using codecrafters_http_server.src;
-using codecrafters_http_server.src.RequestHandling;
+﻿using pandapache.src;
+using pandapache.src.RequestHandling;
+using pandapache.src.ResponseGeneration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
-namespace codecrafters_http_server.src.Middleware
+namespace pandapache.src.Middleware
 {
 
     public class RoutingMiddleware
     {
 
-        private readonly Func<HTTPContext, Task> _next;
+        private readonly Func<HttpContext, Task> _next;
+        private readonly IFileManager _FileManager;
 
-        public RoutingMiddleware(Func<HTTPContext, Task> next)
+        public RoutingMiddleware(Func<HttpContext, Task> next, IFileManager fileManager)
         {
             _next = next;
+            _FileManager = fileManager;
         }
 
-        public async Task InvokeAsync(HTTPContext context)
+        public async Task InvokeAsync(HttpContext context)
         {
             Console.WriteLine("Router Middleware");
 
             Request request = context.Request;
             try
             {
-                string mainDirectory = @"/etc/MyApache/www/";
+                string mainDirectory = @"C:\MyApache\www\";
                 string filePath = Path.Combine(mainDirectory, GetFilePath(request.Path));
-                if (File.Exists(filePath))
+                if (_FileManager.Exists(filePath))
                 {
-                    FileInfo fileInfo = new FileInfo(filePath);
-                    DateTime lastModified = fileInfo.LastWriteTime;
-                    string fileContent = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
-                    HttpResponse response = new HttpResponse(200)
+                    string fileExtension = Path.GetExtension(filePath);
+                    if (fileExtension == "png")
                     {
-                        Body = fileContent
-                    };
-                    SetContentTypeAndLength(response, "text/html; charset=utf-8");
-                    //response.AddHeader("Last-Modified", lastModified.ToUniversalTime().ToString("R"));
-                    context.Response = response;
+                        byte[] imageData = await File.ReadAllBytesAsync(filePath);
+                        HttpResponse httpResponse = new HttpResponse(200)
+                        {
+                            Body = imageData
+                        };
+                        httpResponse.AddHeader("Content-Type", "image / png");
+                        httpResponse.AddHeader("Content-Length", httpResponse.Body.Length.ToString());
+
+                    }
+                    else
+                    {
+                        FileInfo fileInfo = new FileInfo(filePath);
+                        DateTime lastModified = fileInfo.LastWriteTime;
+                        byte[] fileContent = await _FileManager.ReadAllBytesAsync(filePath);
+                        HttpResponse response = new HttpResponse(200)
+                        {
+                            Body = fileContent
+                        };
+                        SetContentTypeAndLength(response, "text/html; charset=utf-8");
+                        //response.AddHeader("Last-Modified", lastModified.ToUniversalTime().ToString("R"));
+                        context.Response = response;
+                    }
                 }
                 else if (request.Path.StartsWith("/echo"))
                 {
@@ -80,7 +101,7 @@ namespace codecrafters_http_server.src.Middleware
             string body = request.Path.Replace("/echo/", "");
             HttpResponse response = new HttpResponse(200)
             {
-                Body = body
+                Body = Encoding.UTF8.GetBytes(body)
             };
             SetContentTypeAndLength(response, "text/plain; charset=utf-8");
             return response;
@@ -91,7 +112,7 @@ namespace codecrafters_http_server.src.Middleware
             string userAgent = request.Headers["User-Agent"];
             HttpResponse response = new HttpResponse(200)
             {
-                Body = userAgent
+                Body = Encoding.UTF8.GetBytes(userAgent)
             };
             SetContentTypeAndLength(response, "text/plain; charset=utf-8");
             return response;

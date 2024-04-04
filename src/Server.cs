@@ -1,34 +1,34 @@
-using codecrafters_http_server.src;
-using codecrafters_http_server.src.Configuration;
-using codecrafters_http_server.src.ConnectionManagement;
-using codecrafters_http_server.src.LoggingAndMonitoring;
-using codecrafters_http_server.src.Middleware;
-using codecrafters_http_server.src.Middleware.codecrafters_http_server.src.Middleware;
-using codecrafters_http_server.src.RequestHandling;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
+using pandapache.src;
+using pandapache.src.Configuration;
+using pandapache.src.ConnectionManagement;
+using pandapache.src.LoggingAndMonitoring;
+using pandapache.src.Middleware;
+using pandapache.src.RequestHandling;
+using pandapache.src.ResponseGeneration;
+
 
 class Program
 {
     static async Task Main(string[] args)
     {
-        ServerConfiguration serverConfiguration = new ServerConfiguration(8080, 20, 5);
         ConnectionManager connectionManager = new ConnectionManager();
-        Logger.Initialize(@"/etc/MyApache/log/", "myappache.log", 2, 1024);
+        Logger.Initialize();
+        IFileManager diskFileManager = new DiskFileManager();
         TerminalMiddleware terminalMiddleware = new TerminalMiddleware();
-        RoutingMiddleware routingMiddleware = new RoutingMiddleware(terminalMiddleware.InvokeAsync);
+        RoutingMiddleware routingMiddleware = new RoutingMiddleware(terminalMiddleware.InvokeAsync, diskFileManager);
         LoggerMiddleware loggerMiddleware = new LoggerMiddleware(routingMiddleware.InvokeAsync);
-        Func<HTTPContext, Task> pipeline = loggerMiddleware.InvokeAsync;
+        Func<HttpContext, Task> pipeline = loggerMiddleware.InvokeAsync;
 
-        connectionManager.StartAsync(System.Net.IPAddress.Any, serverConfiguration.Port, pipeline);
+        connectionManager.StartAsync(pipeline);
 
 
         while (true)
         {
-            await connectionManager.AcceptConnectionsAsync(serverConfiguration);
+            if (connectionManager.Listener.Pending())
+            {
+                ISocketWrapper client = new SocketWrapper(connectionManager.Listener.AcceptSocket());
+                await connectionManager.AcceptConnectionsAsync(client);
+            }
 
         }
     }

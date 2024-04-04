@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafters_http_server.src.ErrorHandling
+namespace pandapache.src.ErrorHandling
 {
     public class TooManyConnectionsException : Exception
     {
